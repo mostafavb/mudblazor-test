@@ -1,0 +1,102 @@
+﻿@page "/fetchdata"
+@inject HttpClient Http
+@inject IDialogService DialogService
+@using MudBlazorTemplates1.Shared
+@using MudBlazorTemplates1.WebAssembly.Components.Bases
+@using MudBlazorTemplates1.WebAssembly.Components.Dialogs;
+
+<PageTitle>Weather forecast</PageTitle>
+
+<MudText Typo="Typo.h3" GutterBottom="true">Weather forecast</MudText>
+<MudText Class="mb-8">This component demonstrates fetching data from the server.</MudText>
+@if (forecasts == null)
+{
+    <MudProgressCircular Color="Color.Default" Indeterminate="true" />
+}
+else
+{
+    <MudDrawer @bind-Open="@isTaggleOpen" Anchor="Anchor.End" Width="400px" Height="100%" Elevation="1" Variant="@DrawerVariant.Temporary" Style="overflow:hidden; ">
+        <MudDrawerHeader>
+            <MudText Typo="Typo.h6" Color="Color.Primary">Weather forecast</MudText>
+            <MudDivider DividerType="DividerType.Inset" />
+        </MudDrawerHeader>
+        <Weather Forecasts="forecasts" Id="forecast.Id"></Weather>
+        <MudFab StartIcon="@Icons.Material.Rounded.Close" Size="Size.Small" IconSize="Size.Small" OnClick="@CloseDrawer" DisableElevation="true" Class="mt-5 ml-3"></MudFab>
+    </MudDrawer>
+
+    <MudPaper Class="ma-3 pa-2">
+        <MudButton OnClick="@(()=>ToggleDrawer(0))"
+               StartIcon="@Icons.Material.Filled.Add"
+               Color="Color.Primary">
+            Add by drawer
+        </MudButton>
+        <MudButton OnClick="@(()=>ToggleDialog(0))"
+               StartIcon="@Icons.Material.Filled.Add"
+               Color="Color.Primary">
+            Add by dialog
+        </MudButton>
+    </MudPaper>
+    <MudPaper Class="ma-3">
+        <MudTable Items="forecasts" Hover="true" SortLabel="Sort By" Elevation="0">
+            <HeaderContent>
+                <MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<WeatherForecast, object>(x=>x.Date!)">Date</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortBy="new Func<WeatherForecast, object>(x=>x.TemperatureC)">Temp. (C)</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortBy="new Func<WeatherForecast, object>(x=>x.TemperatureF)">Temp. (F)</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortBy="new Func<WeatherForecast, object>(x=>x.Summary!)">Summary</MudTableSortLabel></MudTh>
+                <MudTh>Actions</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Date">@context.Date</MudTd>
+                <MudTd DataLabel="Temp. (C)">@context.TemperatureC</MudTd>
+                <MudTd DataLabel="Temp. (F)">@context.TemperatureF</MudTd>
+                <MudTd DataLabel="Summary">@context.Summary</MudTd>
+                <MudFab StartIcon="@Icons.Material.Filled.DriveFileMove" Size="Size.Small" IconSize="Size.Small" OnClick="@(()=>ToggleDrawer(context.Id))" DisableElevation="true"></MudFab>
+                <MudFab StartIcon="@Icons.Material.Filled.FilterNone" Size="Size.Small" IconSize="Size.Small" OnClick="@(()=>ToggleDialog(context.Id))" DisableElevation="true"></MudFab>
+            </RowTemplate>
+            <PagerContent>
+                <MudTablePager PageSizeOptions="new int[]{50, 100}" />
+            </PagerContent>
+        </MudTable>
+    </MudPaper>
+}
+
+
+@code {
+    private List<WeatherForecast>? forecasts;
+    private WeatherForecast forecast = new();
+    private int fahrenhiteDegree = 0;
+    private bool isTaggleOpen;
+
+    protected override async Task OnInitializedAsync()
+    {
+        forecasts = await Http.GetFromJsonAsync<List<WeatherForecast>?>("WeatherForecast");
+    }
+
+    void ToggleDrawer(int id)
+    {
+
+        isTaggleOpen = true;
+        forecast = forecasts?.FirstOrDefault(f => f.Id == id, new()) ?? new() { Id = 0 };
+        fahrenhiteDegree = forecast.TemperatureF;
+    }
+    void CloseDrawer()
+    {
+        isTaggleOpen = false;
+    }
+
+    async Task ToggleDialog(int id)
+    {
+        forecast = forecasts?.FirstOrDefault(f => f.Id == id, new()) ?? new() { Id = 0 };
+        fahrenhiteDegree = forecast.TemperatureF;
+        var parameterOptions = new DialogParameters
+            {
+                ["forecasts"] = forecasts,
+                ["id"] = forecast.Id
+            };
+
+        var dialog = await DialogService.ShowAsync<WeatherDialog>("Weather dialog", parameterOptions);
+        var dialogResult = await dialog.Result;
+        if (dialogResult?.Data is not null)
+            forecasts = (List<WeatherForecast>)dialogResult.Data;
+    }
+}

@@ -1,0 +1,23 @@
+﻿@using MudBlazorTemplates1.Shared
+@using MudBlazorTemplates1.WebAssembly.Components.Bases
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.AddTask" Class="mr-3 mb-n1" />
+            Weather forecast
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <Weather Forecasts="forecasts" Id="id"></Weather>
+    </DialogContent>
+
+</MudDialog>
+
+@code {
+
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    [Parameter] public List<WeatherForecast> forecasts { get; set; } = new();
+    [Parameter] public int id { get; set; } = 0;
+}

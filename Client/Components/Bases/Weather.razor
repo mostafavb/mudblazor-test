@@ -1,0 +1,72 @@
+﻿@using MudBlazorTemplates1.Shared;
+@inject ISnackbar Snackbar
+
+<EditForm Model="forecast" Context="drawerContext" OnValidSubmit="OnSubmit">
+    <DataAnnotationsValidator />
+    <MudCard>
+        <MudCardContent>
+            <MudTextField @bind-Value="forecast.TemperatureC"
+                          Label="Temperature in centigrade"
+                          Variant="Variant.Text"
+                          For="@(() => forecast.TemperatureC)"
+                          Margin="Margin.Normal">
+            </MudTextField>
+            <MudTextField ReadOnly="true" @bind-Value="fahrenhite"
+                          Label="Temperature in fahrenheit"
+                          Variant="Variant.Text"
+                          Margin="Margin.Normal">
+            </MudTextField>
+
+            <MudDatePicker Label="Date"
+                           For="@(()=> forecast.Date)"
+                           @bind-Date="forecast.Date">
+
+            </MudDatePicker>
+            <MudTextField @bind-Value="forecast.Summary"
+                          Label="Summary"
+                          Variant="Variant.Text"
+                          Lines="4"
+                          For="@(() => forecast.Summary)"
+                          Margin="Margin.Normal">
+            </MudTextField>
+        </MudCardContent>
+        <MudCardActions>
+            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Save</MudButton>
+            <MudButton ButtonType="ButtonType.Button" Variant="Variant.Filled" Color="Color.Surface" Class="ml-auto" OnClick="DeleteItem">Delete</MudButton>
+        </MudCardActions>
+    </MudCard>
+</EditForm>
+
+@code {
+
+    [Parameter] public List<WeatherForecast> Forecasts { get; set; } = new();
+    [Parameter] public int Id { get; set; } = 0;
+
+    WeatherForecast forecast { get; set; } = new();
+    private int fahrenhite = 0;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        forecast = Forecasts.FirstOrDefault(f => f.Id == Id, new()) ?? new();
+        fahrenhite = forecast.TemperatureF;
+        await Task.CompletedTask;
+    }
+
+    async Task DeleteItem()
+    {
+        await Task.Run(() => Forecasts!.Remove(forecast));
+        Snackbar.Add($"The weather with id {forecast.Id} deleted successfully.", Severity.Success);
+        StateHasChanged();
+    }
+
+    async Task OnSubmit()
+    {
+        if (forecast?.Id == 0)
+        {
+            forecast.Id = Forecasts!.Max(m => m.Id) + 1;
+            await Task.Run(() => Forecasts.Add(forecast));
+        }
+        Snackbar.Add($"The weather with id {forecast!.Id} saved successfully.", Severity.Success);
+        StateHasChanged();
+    }
+}
