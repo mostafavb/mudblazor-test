@@ -1,5 +1,9 @@
-﻿@using MudBlazorTemplates1.Shared;
+﻿@using MudBlazorTemplates1.Shared.Models;
+@using MudBlazorTemplates1.WebAssembly.Mappers;
+@using MudBlazorTemplates1.WebAssembly.Models;
+@using MudBlazorTemplates1.WebAssembly.Services;
 @inject ISnackbar Snackbar
+@inject ApiClient Api
 
 <EditForm Model="forecast" Context="drawerContext" OnValidSubmit="OnSubmit">
     <DataAnnotationsValidator />
@@ -11,14 +15,14 @@
                           For="@(() => forecast.TemperatureC)"
                           Margin="Margin.Normal">
             </MudTextField>
-            <MudTextField ReadOnly="true" @bind-Value="fahrenhite"
+            <MudTextField ReadOnly="true" @bind-Value="forecast.TemperatureF"
                           Label="Temperature in fahrenheit"
                           Variant="Variant.Text"
                           Margin="Margin.Normal">
             </MudTextField>
 
             <MudDatePicker Label="Date"
-                           For="@(()=> forecast.Date)"
+                           For="@(()=>  forecast.Date)"
                            @bind-Date="forecast.Date">
 
             </MudDatePicker>
@@ -39,21 +43,20 @@
 
 @code {
 
-    [Parameter] public List<WeatherForecast> Forecasts { get; set; } = new();
+    [Parameter] public List<WeatherForecastDto> Forecasts { get; set; } = new();
     [Parameter] public int Id { get; set; } = 0;
 
-    WeatherForecast forecast { get; set; } = new();
-    private int fahrenhite = 0;
+    WeatherForecastDto forecast { get; set; } = new();    
 
     protected override async Task OnParametersSetAsync()
     {
         forecast = Forecasts.FirstOrDefault(f => f.Id == Id, new()) ?? new();
-        fahrenhite = forecast.TemperatureF;
         await Task.CompletedTask;
     }
 
     async Task DeleteItem()
     {
+        
         await Task.Run(() => Forecasts!.Remove(forecast));
         Snackbar.Add($"The weather with id {forecast.Id} deleted successfully.", Severity.Success);
         StateHasChanged();
@@ -65,6 +68,7 @@
         {
             forecast.Id = Forecasts!.Max(m => m.Id) + 1;
             await Task.Run(() => Forecasts.Add(forecast));
+        
         }
         Snackbar.Add($"The weather with id {forecast!.Id} saved successfully.", Severity.Success);
         StateHasChanged();

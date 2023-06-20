@@ -1,9 +1,13 @@
 ﻿@page "/fetchdata"
-@inject HttpClient Http
-@inject IDialogService DialogService
-@using MudBlazorTemplates1.Shared
-@using MudBlazorTemplates1.WebAssembly.Components.Bases
 @using MudBlazorTemplates1.WebAssembly.Components.Dialogs;
+@using MudBlazorTemplates1.WebAssembly.Mappers;
+@using MudBlazorTemplates1.WebAssembly.Models;
+@using MudBlazorTemplates1.WebAssembly.Services;
+@using MudBlazorTemplates1.WebAssembly.Components.Bases;
+
+
+@inject ApiClient Api
+@inject IDialogService DialogService
 
 <PageTitle>Weather forecast</PageTitle>
 
@@ -39,10 +43,10 @@ else
     <MudPaper Class="ma-3">
         <MudTable Items="forecasts" Hover="true" SortLabel="Sort By" Elevation="0">
             <HeaderContent>
-                <MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<WeatherForecast, object>(x=>x.Date!)">Date</MudTableSortLabel></MudTh>
-                <MudTh><MudTableSortLabel SortBy="new Func<WeatherForecast, object>(x=>x.TemperatureC)">Temp. (C)</MudTableSortLabel></MudTh>
-                <MudTh><MudTableSortLabel SortBy="new Func<WeatherForecast, object>(x=>x.TemperatureF)">Temp. (F)</MudTableSortLabel></MudTh>
-                <MudTh><MudTableSortLabel SortBy="new Func<WeatherForecast, object>(x=>x.Summary!)">Summary</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<WeatherForecastDto, object>(x=>x.Date!)">Date</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortBy="new Func<WeatherForecastDto, object>(x=>x.TemperatureC)">Temp. (C)</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortBy="new Func<WeatherForecastDto, object>(x=>x.TemperatureF)">Temp. (F)</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortBy="new Func<WeatherForecastDto, object>(x=>x.Summary!)">Summary</MudTableSortLabel></MudTh>
                 <MudTh>Actions</MudTh>
             </HeaderContent>
             <RowTemplate>
@@ -62,14 +66,17 @@ else
 
 
 @code {
-    private List<WeatherForecast>? forecasts;
-    private WeatherForecast forecast = new();
-    private int fahrenhiteDegree = 0;
+    private List<WeatherForecastDto>? forecasts;
+    private WeatherForecastDto forecast = new();
+
     private bool isTaggleOpen;
 
     protected override async Task OnInitializedAsync()
     {
-        forecasts = await Http.GetFromJsonAsync<List<WeatherForecast>?>("WeatherForecast");
+        //forecasts = await Http.GetFromJsonAsync<List<WeatherForecast>?>("weathers");
+        var weathers = await Api.GetWeatherForecastAsync();// Http.GetFromJsonAsync<List<WeatherForecast>?>("weathers");
+        if (weathers?.StatusCode == 200)
+            forecasts = weathers.Result.ToListDto();
     }
 
     void ToggleDrawer(int id)
@@ -77,7 +84,7 @@ else
 
         isTaggleOpen = true;
         forecast = forecasts?.FirstOrDefault(f => f.Id == id, new()) ?? new() { Id = 0 };
-        fahrenhiteDegree = forecast.TemperatureF;
+
     }
     void CloseDrawer()
     {
@@ -87,7 +94,6 @@ else
     async Task ToggleDialog(int id)
     {
         forecast = forecasts?.FirstOrDefault(f => f.Id == id, new()) ?? new() { Id = 0 };
-        fahrenhiteDegree = forecast.TemperatureF;
         var parameterOptions = new DialogParameters
             {
                 ["forecasts"] = forecasts,
@@ -97,6 +103,6 @@ else
         var dialog = await DialogService.ShowAsync<WeatherDialog>("Weather dialog", parameterOptions);
         var dialogResult = await dialog.Result;
         if (dialogResult?.Data is not null)
-            forecasts = (List<WeatherForecast>)dialogResult.Data;
+            forecasts = (List<WeatherForecastDto>)dialogResult.Data;
     }
 }

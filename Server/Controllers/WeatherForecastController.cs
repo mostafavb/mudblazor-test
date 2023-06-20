@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using MudBlazorTemplates1.Shared;
+using MudBlazorTemplates1.Shared.Models;
 
 namespace MudBlazorTemplates1.Server.Controllers;
 [ApiController]
