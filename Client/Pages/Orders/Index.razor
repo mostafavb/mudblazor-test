@@ -9,7 +9,7 @@
 else
 {
     <MudPaper Class="mb-3 pa-4">
-        <MudButton ButtonType="ButtonType.Button" Color="Color.Success" OnClick="CheckDifference">Check difference</MudButton> 
+        <MudButton ButtonType="ButtonType.Button" Color="Color.Success" OnClick="CheckDataDifference">Check difference</MudButton>
         <div class="d-flex justify-start align-center">
             <p class="mud-typography mud-typography-body1 mud-inherit-text mr-2">Form</p>
             <MudSwitch @bind-Checked="@_isCellEditMode">Cell</MudSwitch>
@@ -17,10 +17,10 @@ else
     </MudPaper>
 
     <MudPaper>
-        <MudDataGrid T="OrderDto" Key Items="Orders" ReadOnly="false" EditMode="@(_isCellEditMode ? DataGridEditMode.Cell : DataGridEditMode.Form)"
+        <MudDataGrid T="OrderDto" Items="Orders" ReadOnly="false" EditMode="@(_isCellEditMode ? DataGridEditMode.Cell : DataGridEditMode.Form)"
+                 Filterable="true" QuickFilter="@_quickFilter"
                  StartedEditingItem="@StartedEditingItem"
                  CanceledEditingItem="@CanceledEditingItem"
-                 Filterable="true" QuickFilter="@_quickFilter"                
                  CommittedItemChanges="@CommittedItemChanges"
                  @onkeydown="HandleKeyDown">
             <ToolBarContent>
@@ -36,19 +36,24 @@ else
                 <PropertyColumn Property="x => x.OrderDate" Title="OrderDate">
                     <EditTemplate>
                         <MudDatePicker @bind-Date="context.Item.OrderDate" Placeholder="Select Date"
-                                   Editable="true"  DateFormat="yyyy/MM/dd" />
+                                   Editable="true" DateFormat="yyyy/MM/dd" />
                     </EditTemplate>
                     <CellTemplate>
                         @Convert.ToDateTime(context.Item.OrderDate).ToString("MMMM dd, yyyy")
                     </CellTemplate>
                 </PropertyColumn>
                 <PropertyColumn Property="x => x.TotalPrice" IsEditable="false" />
+                <PropertyColumn Property="x => x.IsOrder" IsEditable="true">
+                    <EditTemplate>
+                        <MudSwitch @bind-Checked="context.Item.IsOrder" />
+                    </EditTemplate>
+                </PropertyColumn>
                 <TemplateColumn Hidden="@_isCellEditMode" CellClass="d-flex justify-end">
                     <CellTemplate>
                         <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" OnClick="@context.Actions.StartEditingItemAsync" />
                     </CellTemplate>
                 </TemplateColumn>
             </Columns>
-        </MudDataGrid>       
+        </MudDataGrid>
     </MudPaper>
 }

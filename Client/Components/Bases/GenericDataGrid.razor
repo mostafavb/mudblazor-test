@@ -1,0 +1,332 @@
+﻿@using System.Reflection;
+@using MudBlazorTemplates1.WebAssembly.Extensions;
+@using MudBlazorTemplates1.WebAssembly.Utilities;
+@using System.Linq.Expressions;
+@using MudBlazorTemplates1.WebAssembly.Utils;
+@using System.Text.Json;
+@using System.Collections.ObjectModel;
+@inject IJSRuntime JSRuntime
+
+@typeparam T
+
+
+<MudDataGrid id="generic-datagrid" T="T" Items="Items" ReadOnly="ReadOnly" EditMode="DataGridEditMode" FilterMode="@DataGridFilterMode.Simple"
+             Filterable="@Filterable" QuickFilter="@_quickFilter">
+
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">@HeaderTitle</MudText>
+        <MudSpacer />
+        @if (_dataChanged)
+        {
+            <MudAlert Severity="Severity.Warning" NoIcon="true" Class="my-2">Data has been changed.</MudAlert>
+            <MudSpacer />
+            <MudButton Variant="Variant.Text" OnClick="@((e)=> OnCheckDataDifferenceHandler(e))" Color="Color.Warning">Check for Changes</MudButton>
+        }
+        <MudDivider DividerType="DividerType.Inset"/>
+        @if (HasSearchbar)
+        {
+            <MudSpacer />
+            <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" Immediate="true"
+                      AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+        }
+    </ToolBarContent>
+    <Columns>
+        @if (_propertyInfos is not null)
+        {
+            foreach (var property in _propertyInfos)
+            {
+                var attributes = property.GetCustomAttribute<DataGridModelAttribute>();
+                @*LogAttributes(prop);*@
+
+                @if (TypeIdentifier.IsDateTime(property.PropertyType))
+                {
+                    <PropertyColumn T="T" TProperty="DateTime?" Property="@(p => (DateTime?)property.GetValue(p))"
+                        IsEditable="@(attributes!.IsEditable)"
+                        Sortable="@(attributes.IsSortable)"
+                        Hidden="@(attributes.IsHiden)"
+                        Title="@(string.IsNullOrWhiteSpace(attributes.Title)? property.Name : attributes.Title)"
+                        Filterable="@(attributes.IsFilterable)">
+
+                        <EditTemplate>
+                            @if (attributes.IsHiden)
+                                return;
+                            <MudDatePicker Label="@(DataGridEditMode==DataGridEditMode.Form ? (string.IsNullOrWhiteSpace(attributes.Title)? property.Name : attributes.Title) : string.Empty)"
+                               Date="(DateTime?)property.GetValue(context.Item)"
+                               DateChanged="@(e=> {
+                                                        DateTime? convertedValue =e is null ? null : e.Value as DateTime?;
+                                                        property.SetValue(context.Item,convertedValue);
+                                                        CommittedItemChangesHandler(context.Item);
+                                                    })"
+                               ReadOnly=@(attributes.IsReadOnly)
+                               Placeholder="@attributes.Placeholder"
+                               Editable="@(attributes!.IsEditable)"
+                               DateFormat="@attributes.Format" />
+                        </EditTemplate>
+                    </PropertyColumn>
+
+                }
+                @if (TypeIdentifier.IsNumber(property.PropertyType))
+                {
+
+                    if (TypeIdentifier.IsIntegralNumberype(property.PropertyType))
+                    {
+                        <PropertyColumn T="T" TProperty="int?" Property="@(p => (int?)property.GetValue(p))"
+                        IsEditable="@(attributes!.IsEditable)"
+                        Sortable="@(attributes.IsSortable)"
+                        Hidden="@(attributes.IsHiden)"
+                        Title="@(string.IsNullOrWhiteSpace(attributes.Title)? property.Name : attributes.Title)"
+                        Filterable="@(attributes.IsFilterable)">
+                            <EditTemplate>
+                                @if (attributes.IsHiden)
+                                    return;
+                                <MudNumericField id="id-numeric" Label="@(DataGridEditMode==DataGridEditMode.Form ? (string.IsNullOrWhiteSpace(attributes.Title)? property.Name : attributes.Title) : string.Empty)"
+                                 T="int?" Value="(int?)property.GetValue(context.Item)"
+                                 ValueChanged="@(e=> {
+                                                         int? convertedValue = e is null ? 0 : e.Value ;
+                                                         property.SetValue(context.Item,convertedValue ?? 0);
+                                                         CommittedItemChangesHandler(context.Item);
+                                                      })"
+                                 IconSize="Size.Small"
+                                 Immediate="true"
+                                 Placeholder="@attributes.Placeholder"
+                                 ReadOnly=@(attributes.IsReadOnly) />
+                            </EditTemplate>
+                        </PropertyColumn>
+                    }
+                    else
+                    {
+                        <PropertyColumn T="T" TProperty="decimal?" Property="@(p => (decimal?)property.GetValue(p))"
+                        IsEditable="@(attributes!.IsEditable)"
+                        Sortable="@(attributes.IsSortable)"
+                        Hidden="@(attributes.IsHiden)"
+                        Title="@(string.IsNullOrWhiteSpace(attributes.Title)? property.Name : attributes.Title)"
+                        Filterable="@(attributes.IsFilterable)">
+                            <EditTemplate>
+                                @if (attributes.IsHiden)
+                                    return;
+                                <MudNumericField id="id-numeric" Label="@(DataGridEditMode==DataGridEditMode.Form ? (string.IsNullOrWhiteSpace(attributes.Title)? property.Name : attributes.Title) : string.Empty)"
+                                 T="decimal?"
+                                 Immediate="true"
+                                 Value="(decimal?)property.GetValue(context.Item)"
+                                 ValueChanged="@(e=>{
+                                                    decimal? convertedValue = e is null ? 0.0m: e.Value;
+                                                    property.SetValue(context.Item,convertedValue ?? 0.0m);
+                                                    CommittedItemChangesHandler(context.Item);
+                                                    })"
+                                 Placeholder="@attributes.Placeholder"
+                                 ReadOnly=@(attributes.IsReadOnly) />
+                            </EditTemplate>
+                        </PropertyColumn>
+                    }
+
+                }
+                @if (TypeIdentifier.IsString(property.PropertyType))
+                {
+                    <PropertyColumn T="T" TProperty="string" Property="@(p => (string?)property.GetValue(p))"
+                        IsEditable="@(attributes!.IsEditable)"
+                        Sortable="@(attributes.IsSortable)"
+                        Hidden="@(attributes.IsHiden)"
+                        Title="@(string.IsNullOrWhiteSpace(attributes.Title)? property.Name : attributes.Title)"
+                        Filterable="@(attributes.IsFilterable)">
+                        <EditTemplate>
+                            @if (attributes.IsHiden)
+                                return;
+                            <MudTextField Label="@(DataGridEditMode==DataGridEditMode.Form ? (string.IsNullOrWhiteSpace(attributes.Title)? property.Name : attributes.Title) : string.Empty)"
+                              T="string"
+                              ReadOnly=@(attributes.IsReadOnly)
+                              Placeholder="@attributes.Placeholder"
+                              Value="(string?)property.GetValue(context.Item)"
+                              ValueChanged="@(e=>{
+                                                    string? convertedValue = e;
+                                                    property.SetValue(context.Item,convertedValue);
+                                                    CommittedItemChangesHandler(context.Item);
+                                                })">
+                            </MudTextField>
+                        </EditTemplate>
+                    </PropertyColumn>
+                }
+                @if (TypeIdentifier.IsBoolean(property.PropertyType))
+                {
+                    <PropertyColumn T="T" TProperty="bool?" Property="@(p => (bool?)property.GetValue(p))"
+                        IsEditable="@(attributes!.IsEditable)"
+                        Sortable="@(attributes.IsSortable)"
+                        Hidden="@(attributes.IsHiden)"
+                        Title="@(string.IsNullOrWhiteSpace(attributes.Title)? property.Name : attributes.Title)"
+                        Filterable="@(attributes.IsFilterable)">
+                        <EditTemplate>
+                            @if (attributes.IsHiden)
+                                return;
+                            <MudSwitch Label="@(DataGridEditMode==DataGridEditMode.Form ? (string.IsNullOrWhiteSpace(attributes.Title)? property.Name : attributes.Title) : string.Empty)" 
+                            ReadOnly=@(attributes.IsReadOnly) T="bool?" 
+                            Checked="((bool?)property.GetValue(context.Item))"
+                           CheckedChanged="@(e=>{
+                                                    bool? convertedValue = (bool?)e.Value;
+                                                    property.SetValue(context.Item,convertedValue);
+                                                    CommittedItemChangesHandler(context.Item);
+                                                })" />
+                        </EditTemplate>
+                    </PropertyColumn>
+                }
+            }
+
+            <TemplateColumn Hidden="@(DataGridEditMode==DataGridEditMode.Cell)" CellClass="d-flex justify-end">
+                <CellTemplate>
+                    <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" OnClick="@context.Actions.StartEditingItemAsync" />
+                </CellTemplate>
+            </TemplateColumn>
+        }
+
+    </Columns>
+
+</MudDataGrid>
+
+@code {
+
+    // Parameters
+
+    [Parameter]
+    [EditorRequired]
+    public required IList<T> Items { get; set; }
+
+    [Parameter] public bool ReadOnly { get; set; } = false;
+
+    [Parameter] public DataGridEditMode DataGridEditMode { get; set; } = DataGridEditMode.Cell;
+
+    [Parameter] public bool HasSearchbar { get; set; } = false;
+
+    [Parameter] public bool Filterable { get; set; } = false;
+
+    [Parameter] public string HeaderTitle { get; set; } = string.Empty;
+
+    [Parameter] public Func<IList<T>?> GetDifferences { get; set; }
+
+
+    //Fields
+
+    string? _searchString;
+    bool _dataChanged;
+
+    List<PropertyInfo>? _propertyInfos;
+
+
+    // Events
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Items is not null && Items.Count > 0)
+        {
+            _propertyInfos = GetPropertyInfos(Items.First());
+
+            //LogTypeAttributes();
+
+        }
+        await Task.CompletedTask;
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        var module = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/Orders/IndexByComponent.razor.js");
+    }
+
+    Task OnCheckDataDifferenceHandler(MouseEventArgs e)
+    {
+        var diffs = GetDifferences();
+
+        _dataChanged = diffs?.Count > 0;
+        return Task.CompletedTask;
+    }
+
+    void CommittedItemChangesHandler(T item)
+    {
+        _dataChanged = true;
+        //Console.WriteLine($"{System.Text.Json.JsonSerializer.Serialize(item)}");        
+    }
+    //Methods
+
+    Func<T, bool> _quickFilter => x =>
+    {
+        if (_propertyInfos is null)
+            return false;
+
+        if (string.IsNullOrWhiteSpace(_searchString))
+            return true;
+
+        return _propertyInfos?.Where(p =>
+                                        {
+                                            var attributes = p.GetCustomAttribute<DataGridModelAttribute>();
+                                            return attributes is not null && (attributes.IsFilterable && !attributes.IsHiden);
+                                        })
+                                        .Any(property => ($"{property.GetValue(x)}".Contains(_searchString, StringComparison.OrdinalIgnoreCase))) ?? false;
+
+    };
+
+    private List<PropertyInfo> GetPropertyInfos(T item) =>
+        item
+            .GetType()
+            .GetProperties()
+            .ToList();
+
+    void LogTypeAttributes()
+    {
+        foreach (var prop in _propertyInfos!)
+        {
+            var itemName = prop.Name;
+            Console.WriteLine($"itemName: {itemName}");
+
+            bool isReadOnly = prop.GetAttributeValue<bool>("IsReadOnly");
+            Console.WriteLine($"\tIsReadOnly: {isReadOnly}");
+
+            bool isHiden = prop.GetAttributeValue<bool>("IsHiden");
+            Console.WriteLine($"\tIsHiden: {isHiden}");
+
+            bool isEditable = prop.GetAttributeValue<bool>("IsEditable");
+            Console.WriteLine($"\tIsEditable: {isEditable}");
+
+            bool isFilterable = prop.GetAttributeValue<bool>("IsFilterable");
+            Console.WriteLine($"\tIsFilterable: {isFilterable}");
+
+            bool isSortable = prop.GetAttributeValue<bool>("IsSortable");
+            Console.WriteLine($"\tIsSortable: {isSortable}");
+
+            string title = prop.GetAttributeValue<string>("Title") ?? string.Empty;
+            Console.WriteLine($"\tTitle: {title}");
+
+            string placeholder = prop.GetAttributeValue<string>("Placeholder") ?? string.Empty;
+            Console.WriteLine($"\tPlaceholder: {placeholder}");
+
+            string format = prop.GetAttributeValue<string>("Format") ?? string.Empty;
+            Console.WriteLine($"\tFormat: {format}");
+
+            string context = prop.GetAttributeValue<string>("Context") ?? string.Empty;
+            Console.WriteLine($"\tContext: {context}");
+
+            string cellClass = prop.GetAttributeValue<string>("CellClass") ?? string.Empty;
+            Console.WriteLine($"\tCellClass: {cellClass}");
+
+            string cellStyle = prop.GetAttributeValue<string>("CellStyle") ?? string.Empty;
+            Console.WriteLine($"\tCellStyle: {cellStyle}");
+
+            string class_ = prop.GetAttributeValue<string>("Class") ?? string.Empty;
+            Console.WriteLine($"\tClass: {class_}");
+
+
+        }
+    }
+
+    void LogAttributes(PropertyInfo prop)
+    {
+        var attributes = prop.GetCustomAttribute<DataGridModelAttribute>();
+
+        Console.WriteLine($"item: Name: {prop.Name}");
+        Console.WriteLine($"\tType: {prop.PropertyType}");
+        Console.WriteLine($"\tValue: {prop.GetValue(Items.First())}");
+
+        bool isDatetime = prop.PropertyType == typeof(DateTime?);
+        Console.WriteLine($"\tIsDatetime: {isDatetime}");
+        Console.WriteLine($"\tIsEditable: {attributes.IsEditable}");
+        Console.WriteLine($"\tIsSortable: {attributes.IsSortable}");
+        Console.WriteLine($"\tIsHiden: {attributes.IsHiden}");
+        Console.WriteLine($"\tIsFilterable: {attributes.IsFilterable}");
+        Console.WriteLine($"----------------------------------");
+    }
+}
+

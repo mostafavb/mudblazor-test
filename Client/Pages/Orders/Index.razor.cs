@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
-using MudBlazor;
 using MudBlazorTemplates1.WebAssembly.Mappers;
 using MudBlazorTemplates1.WebAssembly.Models;
 using MudBlazorTemplates1.WebAssembly.Services;
@@ -34,12 +33,13 @@ public partial class Index
     }
 
    
-    async Task CheckDifference()
+    async Task CheckDataDifference()
     {       
             var comparer = DynamicEqualityComparerFactory.Create<OrderDto>(
                 nameof(OrderDto.OrderDate), 
                 nameof(OrderDto.CustomerAddress), 
-                nameof(OrderDto.CustomerName));
+                nameof(OrderDto.CustomerName),
+                nameof(OrderDto.IsOrder));
 
 
         var diffs = (await Task.Run(()=> Orders.Except(PersistOrders, comparer))).ToList();
@@ -88,11 +88,6 @@ public partial class Index
         if (!string.IsNullOrWhiteSpace(action))
             await JSRuntime.InvokeVoidAsync("mudDataGridInterop.setFocusOnCell", action);
     }
-    async Task ScrollToRow(OrderDto order)
-    {
-        await JSRuntime.InvokeVoidAsync("mudDataGridInterop.scrollToRow", "myGrid", $"row_{order.Id}");
-    }
-
 
     void StartedEditingItem(OrderDto item)
     {

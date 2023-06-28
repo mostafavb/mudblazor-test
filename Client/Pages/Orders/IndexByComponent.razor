@@ -1,0 +1,36 @@
+﻿@page "/ordersbycomponent"
+
+@using MudBlazorTemplates1.WebAssembly.Extensions;
+@using MudBlazorTemplates1.WebAssembly.Mappers;
+@using MudBlazorTemplates1.WebAssembly.Models;
+@using MudBlazorTemplates1.WebAssembly.Services;
+@using System.Collections.ObjectModel;
+@using MudBlazorTemplates1.WebAssembly.Components.Bases;
+
+@inject ApiClient Api
+
+<MudPaper>
+    <GenericDataGrid T="OrderDto" Items="Orders" DataGridEditMode="DataGridEditMode.Cell"
+                     HasSearchbar="true" HeaderTitle="Order Title"
+                     ReadOnly="false" Filterable="true"
+                     GetDifferences="@(()=> Orders?.GetDataDifference(PersistOrders))">
+    </GenericDataGrid>
+</MudPaper>
+
+
+@code {
+
+    ObservableCollection<OrderDto>? Orders;
+    ObservableCollection<OrderDto>? PersistOrders;
+    bool _dataChanged;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await Api.OrdersAllAsync();
+        if (response?.StatusCode == 200)
+        {
+            Orders = new ObservableCollection<OrderDto>((response.Result).ToListDto());
+            PersistOrders = new ObservableCollection<OrderDto>(response.Result.ToListDto());
+        }
+    }
+}
