@@ -6,7 +6,7 @@ namespace MudBlazorTemplates1.WebAssembly.Extensions;
 
 public static class ListsExtension
 {
-    public static IList<T>? GetDataDifference<T>(this IList<T> first, IList<T> second)
+    public static IList<T> GetDataDifference<T>(this IList<T> first, IList<T> second)
     {        
         var propertyInfos = typeof(T).GetProperties().ToList();
 
@@ -19,7 +19,7 @@ public static class ListsExtension
                                         .ToArray();
 
         if (editableAttributes is null)
-            return null;
+            return Enumerable.Empty<T>().ToList();
 
         var comparer = DynamicEqualityComparerFactory.Create<T>(editableAttributes);
 
@@ -27,7 +27,7 @@ public static class ListsExtension
 
 
         if (differences is null)
-            return null;
+            return Enumerable.Empty<T>().ToList();
 
         var diffCounts = differences.Count();
 

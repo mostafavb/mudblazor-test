@@ -6,23 +6,60 @@
 @using MudBlazorTemplates1.WebAssembly.Services;
 @using System.Collections.ObjectModel;
 @using MudBlazorTemplates1.WebAssembly.Components.Bases;
+@using NPOI.SS.UserModel;
+@using NPOI.XSSF.UserModel;
 
 @inject ApiClient Api
 
 <MudPaper>
-    <GenericDataGrid T="OrderDto" Items="Orders" DataGridEditMode="DataGridEditMode.Cell"
-                     HasSearchbar="true" HeaderTitle="Order Title"
-                     ReadOnly="false" Filterable="true"
-                     GetDifferences="@(()=> Orders?.GetDataDifference(PersistOrders))">
-    </GenericDataGrid>
+    <MudGrid>
+        <MudItem>
+            @*<MudFileUpload T="IBrowserFile" OnFilesChanged="@ImportExcelFile">
+            <ButtonTemplate>
+            <MudButton HtmlTag="label"
+            Variant="Variant.Filled"
+            Color="Color.Primary"
+            for="@context">
+            Upload an excel file
+            </MudButton>
+            </ButtonTemplate>
+            <SelectedTemplate>
+            @if (context != null)
+            {
+            <MudText>@context.Name</MudText>
+            }
+            else
+            {
+            <MudText>No File</MudText>
+            }
+            </SelectedTemplate>
+            </MudFileUpload>*@
+        </MudItem>
+    </MudGrid>
+    <MudItem>
+        <GenericDataGrid T="OrderDto" Items="Orders"
+                         ShowDeleteRowButton="true"
+                         ShowEditRowButton="false"
+                         FixedHeader="true"
+                         DataGridEditMode="DataGridEditMode.Cell"
+                         HasSearchbar="true" HeaderTitle="Order Title"
+                         ReadOnly="false" Filterable="true"
+                         GetDifferences="@(GetDifferences)">
+        </GenericDataGrid>
+    </MudItem>
 </MudPaper>
 
 
 @code {
+    // fields
+    GenericDataGrid<OrderDto> _grid;
 
     ObservableCollection<OrderDto>? Orders;
     ObservableCollection<OrderDto>? PersistOrders;
     bool _dataChanged;
+
+
+    // events
 
     protected override async Task OnInitializedAsync()
     {
@@ -33,4 +70,59 @@
             PersistOrders = new ObservableCollection<OrderDto>(response.Result.ToListDto());
         }
     }
+
+    async Task ImportExcelFile(InputFileChangeEventArgs e)
+    {
+        if (e.FileCount > 0)
+        {
+            using var fileStream = e.File.OpenReadStream();
+            using var ms = new MemoryStream();
+
+            await fileStream.CopyToAsync(ms);
+            fileStream.Close();
+            ms.Position = 0;
+
+
+            using var xxswb = new XSSFWorkbook(ms);
+
+            if (xxswb is not null && xxswb.NumberOfSheets > 0)
+            {
+                ISheet sheet = xxswb.GetSheetAt(0);
+                if (sheet is not null && sheet.LastRowNum > 1)
+                {
+
+                    var headerRow = sheet.GetRow(0);
+                    if (headerRow is not null && headerRow.Count() > 0)
+                    {
+                        var columnNames = headerRow.Select(h => h.StringCellValue).ToList();
+                        var firstRow = sheet.GetRow(1);
+                        if (firstRow is not null && firstRow.LastCellNum > 1)
+                        {
+                            foreach (var hr in headerRow)
+                            {
+                                var columnIndex = hr.ColumnIndex;
+                            }
+                        }
+                    }
+                }
+
+            }
+
+        }
+    }
+
+    // methods
+
+    IList<OrderDto> GetDeletedRows() =>
+            PersistOrders.GetDataDifference(Orders);
+
+
+    IList<OrderDto> GetEdittedRows() =>
+            Orders.GetDataDifference(PersistOrders);
+
+
+    IList<OrderDto> GetDifferences() =>
+            PersistOrders.Count > Orders.Count ? GetDeletedRows() : GetEdittedRows();
+
 }
+

@@ -30,8 +30,7 @@ public partial class Index
             Orders = new ObservableCollection<OrderDto>((response.Result).ToListDto());
             PersistOrders = new ObservableCollection<OrderDto>(response.Result.ToListDto());
         }
-    }
-
+    }    
    
     async Task CheckDataDifference()
     {       
