@@ -157,21 +157,34 @@
                         Filterable="@(attributes.IsFilterable)">
                             <EditTemplate>
 
-                               
+                                @if ((ExternalDatas?.Keys.Contains(property.Name) ?? false) && TypeIdentifier.IsEnumerable(attributes.DataType) && (attributes?.DataType == ExternalDatas?[property.Name]?.GetType()))
+                                {
+                                    <MudSelect T="int?" Dense="true" Value="(int?)property.GetValue(context.Item)" ValueChanged="@( e=> {                                                                   
+                                                                         int? convertedValue = e is null ? 0 : e.Value ;
+                                                                         property.SetValue(context.Item,convertedValue ?? 0);
+                                                                   
+                                                                  })">
+                                        @foreach (KeyValuePair<int, string> option in ExternalDatas?[property.Name].As<List<KeyValuePair<int, string>>>() ?? new())
+                                        {
+                                            <MudSelectItem T="int?" Value="@option.Key">@option.Value</MudSelectItem>
+                                        }
+                                    </MudSelect>
+                                }
+                                else
+                                {
                                     <MudNumericField id="id-numeric"
                                  Label="@((isNewFormOpened ) ? (string.IsNullOrWhiteSpace(attributes!.Title)? property.Name : attributes.Title) : string.Empty)"
                                  T="int?" Value="(int?)property.GetValue(context.Item)"
-                                 ValueChanged="@( e=> {
+                                 ValueChanged="@( e=> {                                                                   
+                                                            int? convertedValue = e is null ? 0 : e.Value ;
+                                                            property.SetValue(context.Item,convertedValue ?? 0);
                                                                    
-                                                                    int? convertedValue = e is null ? 0 : e.Value ;
-                                                                    property.SetValue(context.Item,convertedValue ?? 0);
-                                                                   
-                                                                  })"
+                                                            })"
                                  Immediate="false"
                                  HideSpinButtons="true"
                                  Placeholder="@attributes.Placeholder"
                                  ReadOnly=@(attributes.IsReadOnly) />
-                                
+                                }
                             </EditTemplate>
                         </PropertyColumn>
                     }
