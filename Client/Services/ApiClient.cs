@@ -1,7 +1,7 @@
 ﻿
-namespace MudBlazorTemplates1.WebAssembly.Services;
+namespace Ui.WebAssembly.Services;
 
-using MudBlazorTemplates1.Shared.Models;
+using Infrastructure.Shared.Models;
 using System = global::System;
 
 [System.CodeDom.Compiler.GeneratedCode("NSwag", "13.19.0.0 (NJsonSchema v10.9.0.0 (Newtonsoft.Json v13.0.0.0))")]

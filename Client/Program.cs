@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor.Services;
-using MudBlazorTemplates1.WebAssembly;
-using MudBlazorTemplates1.WebAssembly.Services;
+using Ui.WebAssembly;
+using Ui.WebAssembly.Services;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");

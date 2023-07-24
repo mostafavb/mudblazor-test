@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
 
-namespace MudBlazorTemplates1.WebAssembly.Utils;
+namespace Ui.WebAssembly.Utils;
 
 public class DynamicEqualityComparer<T> : IEqualityComparer<T>
 {
@@ -31,6 +31,36 @@ public static class DynamicEqualityComparerFactory
                 properties.Add(property);
         }
 
+        return new DynamicEqualityComparer<T>(
+            (x, y) =>
+            {
+                foreach (var property in properties)
+                {
+                    var xValue = property.GetValue(x);
+                    var yValue = property.GetValue(y);
+                    if (!Equals(xValue, yValue))
+                        return false;
+                }
+                return true;
+            },
+            obj =>
+            {
+                unchecked
+                {
+                    int hash = 17;
+                    foreach (var property in properties)
+                    {
+                        var value = property.GetValue(obj);
+                        if (value != null)
+                            hash = hash * 23 + value.GetHashCode();
+                    }
+                    return hash;
+                }
+            });
+    }
+
+    public static IEqualityComparer<T> Create<T>(List<PropertyInfo> properties)
+    {
         return new DynamicEqualityComparer<T>(
             (x, y) =>
             {

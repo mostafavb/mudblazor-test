@@ -1,52 +1,42 @@
 ﻿@page "/ordersbycomponent"
 
-@using MudBlazorTemplates1.WebAssembly.Extensions;
-@using MudBlazorTemplates1.WebAssembly.Mappers;
-@using MudBlazorTemplates1.WebAssembly.Models;
-@using MudBlazorTemplates1.WebAssembly.Services;
+@using Ui.WebAssembly.Extensions;
+@using Ui.WebAssembly.Mappers;
+@using Ui.WebAssembly.Models;
+@using Ui.WebAssembly.Services;
 @using System.Collections.ObjectModel;
-@using MudBlazorTemplates1.WebAssembly.Components.Bases;
-@using NPOI.SS.UserModel;
-@using NPOI.XSSF.UserModel;
+@using Ui.WebAssembly.Components.Bases;
+
 
 @inject ApiClient Api
 
 <MudPaper>
-    <MudGrid>
+    @if (Items is null)
+    {
         <MudItem>
-            @*<MudFileUpload T="IBrowserFile" OnFilesChanged="@ImportExcelFile">
-            <ButtonTemplate>
-            <MudButton HtmlTag="label"
-            Variant="Variant.Filled"
-            Color="Color.Primary"
-            for="@context">
-            Upload an excel file
-            </MudButton>
-            </ButtonTemplate>
-            <SelectedTemplate>
-            @if (context != null)
-            {
-            <MudText>@context.Name</MudText>
-            }
-            else
-            {
-            <MudText>No File</MudText>
-            }
-            </SelectedTemplate>
-            </MudFileUpload>*@
+            <MudProgressCircular Color="Color.Default" Indeterminate="true" />
         </MudItem>
-    </MudGrid>
-    <MudItem>
-        <GenericDataGrid T="OrderDto" Items="Orders"
+    }
+    else
+    {
+        <MudItem>
+            <GenericDataGrid T="OrderDto" Items="Items"
                          ShowDeleteRowButton="true"
                          ShowEditRowButton="false"
                          FixedHeader="true"
+                         HasSearchbar="true"
+                         HeaderTitle="Order Title"
+                         ReadOnly="false"
+                         Filterable="true"
+                         ShowCheckDifference="true"
+                         ExternalDatas="@externalDatas"
                          DataGridEditMode="DataGridEditMode.Cell"
-                         HasSearchbar="true" HeaderTitle="Order Title"
-                         ReadOnly="false" Filterable="true"
-                         GetDifferences="@(GetDifferences)">
-        </GenericDataGrid>
-    </MudItem>
+                         GetDifferences="@GetDifferences"
+                         OnDataChanged="@DataChanged"
+                         OnApplyChangedData="@ApplyChanges">
+            </GenericDataGrid>
+        </MudItem>
+    }
 </MudPaper>
 
 
@@ -54,75 +44,62 @@
     // fields
     GenericDataGrid<OrderDto> _grid;
 
-    ObservableCollection<OrderDto>? Orders;
+    ObservableCollection<OrderDto>? Items;
     ObservableCollection<OrderDto>? PersistOrders;
-    bool _dataChanged;
-
+    Dictionary<string, object> externalDatas;
 
     // events
 
     protected override async Task OnInitializedAsync()
     {
-        var response = await Api.OrdersAllAsync();
-        if (response?.StatusCode == 200)
+        var ordreTypeResponse = await Api.TypesAsync();
+        if (ordreTypeResponse?.StatusCode == 200)
         {
-            Orders = new ObservableCollection<OrderDto>((response.Result).ToListDto());
-            PersistOrders = new ObservableCollection<OrderDto>(response.Result.ToListDto());
-        }
-    }
-
-    async Task ImportExcelFile(InputFileChangeEventArgs e)
-    {
-        if (e.FileCount > 0)
-        {
-            using var fileStream = e.File.OpenReadStream();
-            using var ms = new MemoryStream();
-
-            await fileStream.CopyToAsync(ms);
-            fileStream.Close();
-            ms.Position = 0;
-
-
-            using var xxswb = new XSSFWorkbook(ms);
-
-            if (xxswb is not null && xxswb.NumberOfSheets > 0)
+            await InvokeAsync(() =>
             {
-                ISheet sheet = xxswb.GetSheetAt(0);
-                if (sheet is not null && sheet.LastRowNum > 1)
-                {
-
-                    var headerRow = sheet.GetRow(0);
-                    if (headerRow is not null && headerRow.Count() > 0)
-                    {
-                        var columnNames = headerRow.Select(h => h.StringCellValue).ToList();
-                        var firstRow = sheet.GetRow(1);
-                        if (firstRow is not null && firstRow.LastCellNum > 1)
-                        {
-                            foreach (var hr in headerRow)
-                            {
-                                var columnIndex = hr.ColumnIndex;
-                            }
-                        }
-                    }
-                }
-
-            }
-
+                var orderTypes = ordreTypeResponse.Result;
+                externalDatas ??= new();
+                externalDatas[nameof(OrderDto.OrderTypeId)] = orderTypes.ToListOfPairs();
+            });
         }
+
+        var orderResponse = await Api.OrdersAllAsync();
+        if (orderResponse?.StatusCode == 200)
+        {
+            await Task.Run(() => Items = new ObservableCollection<OrderDto>((orderResponse.Result).ToListDto()));
+            await Task.Run(() => PersistOrders = new ObservableCollection<OrderDto>(orderResponse.Result.ToListDto()));
+        }
+
     }
 
+    async Task<IList<OrderDto>> GetDifferences()
+    {
+        var changedRows = await GetAllChangesAsync();
+
+        return await Task.FromResult(changedRows.ToList());
+    }
+
+    async Task ApplyChanges()
+    {
+        await Task.CompletedTask;
+    }
     // methods
 
-    IList<OrderDto> GetDeletedRows() =>
-            PersistOrders.GetDataDifference(Orders);
+    async Task DataChanged(IList<OrderDto> orders)
+    {
+        await Task.Run(() => Items = new ObservableCollection<OrderDto>(orders.ToList()));
+        //PersistOrders = new ObservableCollection<OrderDto>(orderDtos.ToList());
+        StateHasChanged();
+    }
+
+    async Task<IList<OrderDto>> GetAllChangesAsync() =>
+            await Task.FromResult(PersistOrders?.GetDataDifference(Items ?? new(), true) ?? Enumerable.Empty<OrderDto>().ToList());
 
 
-    IList<OrderDto> GetEdittedRows() =>
-            Orders.GetDataDifference(PersistOrders);
+    async Task<IList<OrderDto>> GetEdittedRowsAsync() =>
+           await Task.FromResult(Items?.GetDataDifference(PersistOrders ?? new()) ?? Enumerable.Empty<OrderDto>().ToList());
 
 
-    IList<OrderDto> GetDifferences() =>
-            PersistOrders.Count > Orders.Count ? GetDeletedRows() : GetEdittedRows();
 
 }
 

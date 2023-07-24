@@ -1,4 +1,4 @@
-﻿using MudBlazorTemplates1.Shared.Models;
+﻿using Infrastructure.Shared.Models;
 
 namespace ApiClient.Repositories;
 public interface IOrdersRepository

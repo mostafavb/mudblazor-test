@@ -1,14 +1,14 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
-using MudBlazorTemplates1.WebAssembly.Mappers;
-using MudBlazorTemplates1.WebAssembly.Models;
-using MudBlazorTemplates1.WebAssembly.Services;
-using MudBlazorTemplates1.WebAssembly.Utils;
+using Ui.WebAssembly.Mappers;
+using Ui.WebAssembly.Models;
+using Ui.WebAssembly.Services;
+using Ui.WebAssembly.Utils;
 using System.Collections.ObjectModel;
 using System.Text.Json;
 
-namespace MudBlazorTemplates1.WebAssembly.Pages.Orders;
+namespace Ui.WebAssembly.Pages.Orders;
 
 public partial class Index
 {
@@ -16,9 +16,10 @@ public partial class Index
     [Inject] IJSRuntime JSRuntime { get; set; }
 
     ObservableCollection<OrderDto>? Orders;
-    ObservableCollection<OrderDto>? PersistOrders;   
+    ObservableCollection<OrderDto>? PersistOrders;
 
     bool _isCellEditMode = true;
+    bool _isDataLoaded = false;
     List<string> _events = new();
     string _searchString;
 
@@ -27,21 +28,34 @@ public partial class Index
         var response = await Api.OrdersAllAsync();
         if (response?.StatusCode == 200)
         {
-            Orders = new ObservableCollection<OrderDto>((response.Result).ToListDto());
-            PersistOrders = new ObservableCollection<OrderDto>(response.Result.ToListDto());
+            await InvokeAsync(() =>
+            {
+                Orders = new ObservableCollection<OrderDto>((response.Result).ToListDto());
+                PersistOrders = new ObservableCollection<OrderDto>(response.Result.ToListDto());
+                _isDataLoaded = true;
+            });
+
+
         }
-    }    
-   
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_isDataLoaded)
+        {
+            await JSRuntime.InvokeVoidAsync("activeFocus");
+            _isDataLoaded = false;
+        }
+    }
     async Task CheckDataDifference()
-    {       
-            var comparer = DynamicEqualityComparerFactory.Create<OrderDto>(
-                nameof(OrderDto.OrderDate), 
-                nameof(OrderDto.CustomerAddress), 
-                nameof(OrderDto.CustomerName),
-                nameof(OrderDto.IsOrder));
+    {
+        var comparer = DynamicEqualityComparerFactory.Create<OrderDto>(
+            nameof(OrderDto.OrderDate),
+            nameof(OrderDto.CustomerAddress),
+            nameof(OrderDto.CustomerName)
+            );
 
 
-        var diffs = (await Task.Run(()=> Orders.Except(PersistOrders, comparer))).ToList();
+        var diffs = (await Task.Run(() => Orders.Except(PersistOrders, comparer))).ToList();
         if (diffs.Count > 0)
         {
             string changedNote = $"There are {diffs.Count} rows changed.";
@@ -53,7 +67,7 @@ public partial class Index
                 Console.WriteLine($" => After: {JsonSerializer.Serialize(item)}");
                 Console.WriteLine($"     ");
             }
-        }       
+        }
     }
 
     Func<OrderDto, bool> _quickFilter => x =>
@@ -74,16 +88,16 @@ public partial class Index
     };
 
     async Task HandleKeyDown(KeyboardEventArgs e)
-    {        
+    {
         string action = e.Key switch
         {
             "ArrowUp" => "up",
-            "ArrowDown"=>"down",
-            "ArrowLeft"=> "left",
-            "ArrowRight"=> "right",
+            "ArrowDown" => "down",
+            "ArrowLeft" => "left",
+            "ArrowRight" => "right",
             _ => string.Empty
         };
-      
+
         if (!string.IsNullOrWhiteSpace(action))
             await JSRuntime.InvokeVoidAsync("mudDataGridInterop.setFocusOnCell", action);
     }

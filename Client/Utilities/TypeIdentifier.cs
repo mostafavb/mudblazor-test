@@ -1,6 +1,8 @@
 ﻿using System.Numerics;
+using System.Collections;
 
-namespace MudBlazorTemplates1.WebAssembly.Utilities;
+
+namespace Ui.WebAssembly.Utilities;
 
 internal class TypeIdentifier
 {
@@ -32,7 +34,7 @@ internal class TypeIdentifier
             typeof(BigInteger?)
         };
 
-    public static bool IsIntegralNumberype(Type? type) =>
+    public static bool IsIntegralNumber(Type? type) =>
         type == typeof(byte) || type == typeof(sbyte) ||
         type == typeof(short) || type == typeof(ushort) ||
         type == typeof(int) || type == typeof(uint) ||
@@ -82,6 +84,17 @@ internal class TypeIdentifier
         }
 
         return Nullable.GetUnderlyingType(type)?.IsEnum ?? false;
+    }
+    public static bool IsEnumerable(Type? type)
+    {
+        if ((object)type == null)
+        {
+            return false;
+        }
+
+       return typeof(IEnumerable).IsAssignableFrom(type)
+                          || (type.IsGenericType && typeof(IEnumerable<>)
+                            .IsAssignableFrom(type.GetGenericTypeDefinition()));       
     }
 
     public static bool IsDateTime(Type? type)

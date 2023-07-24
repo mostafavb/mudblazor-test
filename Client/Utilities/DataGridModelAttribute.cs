@@ -1,4 +1,4 @@
-﻿namespace MudBlazorTemplates1.WebAssembly.Utilities;
+﻿namespace Ui.WebAssembly.Utilities;
 
 
 [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
@@ -9,8 +9,7 @@ public class DataGridModelAttribute : Attribute
     public bool IsEditable { get; set; } = false;
     public bool IsFilterable { get; set; } = false;
     public bool IsSortable { get; set; } = false;
-    public Type? Type { get; set; } = null;
-    public object? Data { get; set; } = null;
+    public Type? DataType { get; set; } = null;    
     public string Title { get; set; } = string.Empty;
     public string Placeholder { get; set; } = string.Empty;
     public string Format { get; set; } = string.Empty;

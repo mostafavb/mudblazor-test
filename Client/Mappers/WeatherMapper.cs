@@ -1,7 +1,7 @@
-﻿using MudBlazorTemplates1.Shared.Models;
-using MudBlazorTemplates1.WebAssembly.Models;
+﻿using Infrastructure.Shared.Models;
+using Ui.WebAssembly.Models;
 
-namespace MudBlazorTemplates1.WebAssembly.Mappers;
+namespace Ui.WebAssembly.Mappers;
 
 public static class WeatherMapper
 {

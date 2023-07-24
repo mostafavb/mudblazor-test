@@ -14,13 +14,13 @@
 	<ItemGroup>
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="7.0.8" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="7.0.4" />
-		<PackageReference Include="MudBlazor" Version="6.6.0" />
+		<PackageReference Include="MiniExcel" Version="1.31.0" />
+		<PackageReference Include="MudBlazor" Version="6.7.0" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-		<PackageReference Include="NPOI" Version="2.6.0" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\Shared\MudBlazorTemplates1.Shared.csproj" />
+	  <ProjectReference Include="..\Shared\Infrastructure.Shared.csproj" />
 	</ItemGroup>
 	
 	<ItemGroup>

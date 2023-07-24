@@ -1,5 +1,5 @@
 ﻿using ApiClient.Repositories;
-using MudBlazorTemplates1.Shared.Models;
+using Infrastructure.Shared.Models;
 
 namespace ApiClient.Endpoints;
 

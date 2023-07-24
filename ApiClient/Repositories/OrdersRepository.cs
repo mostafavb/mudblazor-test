@@ -1,5 +1,5 @@
 ﻿using Bogus;
-using MudBlazorTemplates1.Shared.Models;
+using Infrastructure.Shared.Models;
 
 namespace ApiClient.Repositories;
 
@@ -12,7 +12,7 @@ public class OrdersRepository : IOrdersRepository
     {
         _fakeDataGenerator = new();
 
-        _orders = _fakeDataGenerator.GenerateFakeOrders(10);
+        _orders = _fakeDataGenerator.GenerateFakeOrders(50);
     }
 
     public List<Order> GetAllOrders()
@@ -38,8 +38,8 @@ public class OrdersRepository : IOrdersRepository
 
     public List<OrderType> GetOrderTypes() =>
         _fakeDataGenerator.OrderTypes;
-    
-    public List<Product> GetProducts()=>
+
+    public List<Product> GetProducts() =>
         _fakeDataGenerator.Products;
 }
 
@@ -57,7 +57,11 @@ public class FakeDataGenerator
             new Product(1, "Product 1", 10.0m),
             new Product(2, "Product 2", 15.0m),
             new Product(3, "Product 3", 20.0m),
-            new Product(4, "Product 4", 25.0m)
+            new Product(4, "Product 4", 25.0m),
+            new Product(5, "Product 5", 35.0m),
+            new Product(6, "Product 6", 45.0m),
+            new Product(7, "Product 7", 55.0m),
+            new Product(8, "Product 8", 60.0m)
         };
 
     public List<Order> GenerateFakeOrders(int count)
@@ -72,7 +76,7 @@ public class FakeDataGenerator
             int id = 0;
             do
             {
-                id = faker.Random.Int(0, count*10);
+                id = faker.Random.Int(0, count * 10);
             }
             while (orders.Any(a => a.Id == id));
 
@@ -86,7 +90,22 @@ public class FakeDataGenerator
                 OrderDate = faker.Date.PastDateOnly(),
                 OrderTypeId = otId,
                 OrderDetails = new List<OrderDetail>(),
-                OrderType = OrderTypes.FirstOrDefault(f => f.Id == otId)
+                OrderType = OrderTypes.FirstOrDefault(f => f.Id == otId),
+
+                BankAccountingId = faker.Finance.Bic(),
+                BasePrice = Math.Round(faker.Random.Decimal(0.1m, 500m), 2),
+                City = faker.Address.City(),
+                Country = faker.Address.Country(),
+                FactorId = faker.Random.Int(0),
+                HasAccounting = faker.Random.Bool(),
+                IsClosed = faker.Random.Bool(),
+                LastPayment = Math.Round(faker.Random.Decimal(10m, 5000m), 2),
+                Payment = Math.Round(faker.Random.Decimal(10m, 5000m), 2),
+                PaymentDate = faker.Date.PastDateOnly(),
+                PaymentId = faker.Random.Int(0),
+                Remains = Math.Round(faker.Random.Decimal(0m, 1000m), 2),
+                VisitorName = faker.Name.FullName(),
+                ZipCode = faker.Address.ZipCode()
             };
 
             var numOrderDetails = faker.Random.Int(1, 5);

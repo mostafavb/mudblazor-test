@@ -2,11 +2,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31717.71
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MudBlazorTemplates1.Shared", "Shared\MudBlazorTemplates1.Shared.csproj", "{9113B08E-809C-4FB4-9C75-33C8D8911031}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Infrastructure.Shared", "Shared\Infrastructure.Shared.csproj", "{9113B08E-809C-4FB4-9C75-33C8D8911031}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MudBlazorTemplates1.WebAssembly", "Client\MudBlazorTemplates1.WebAssembly.csproj", "{03E7D29E-E690-42AD-A64C-DC2AA4CC9FD6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ui.WebAssembly", "Client\Ui.WebAssembly.csproj", "{03E7D29E-E690-42AD-A64C-DC2AA4CC9FD6}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApiClient", "ApiClient\ApiClient.csproj", "{2D0026F0-8B3F-4DCE-A1D8-F0F0E5DCD31E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.bUnit", "BlazorTestProject1.Test.bUnit\Test.bUnit.csproj", "{B382BBAE-0CFF-48A7-B932-0DD5A53C11F4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -26,6 +28,10 @@ Global
 		{2D0026F0-8B3F-4DCE-A1D8-F0F0E5DCD31E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2D0026F0-8B3F-4DCE-A1D8-F0F0E5DCD31E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2D0026F0-8B3F-4DCE-A1D8-F0F0E5DCD31E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B382BBAE-0CFF-48A7-B932-0DD5A53C11F4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B382BBAE-0CFF-48A7-B932-0DD5A53C11F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B382BBAE-0CFF-48A7-B932-0DD5A53C11F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B382BBAE-0CFF-48A7-B932-0DD5A53C11F4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

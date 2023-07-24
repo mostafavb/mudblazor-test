@@ -1,4 +1,4 @@
-﻿namespace MudBlazorTemplates1.WebAssembly.Models;
+﻿namespace Ui.WebAssembly.Models;
 
 public class WeatherForecastDto
 {

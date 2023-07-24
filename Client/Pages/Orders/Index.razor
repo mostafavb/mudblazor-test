@@ -1,6 +1,6 @@
 ﻿@page "/orders/"
 @using MudBlazor.Utilities;
-@using MudBlazorTemplates1.WebAssembly.Models;
+@using Ui.WebAssembly.Models;
 
 @if (Orders == null)
 {
@@ -17,12 +17,11 @@ else
     </MudPaper>
 
     <MudPaper>
-        <MudDataGrid T="OrderDto" Items="Orders" ReadOnly="false" EditMode="@(_isCellEditMode ? DataGridEditMode.Cell : DataGridEditMode.Form)"
+        <MudDataGrid id="generic-datagrid" T="OrderDto" Items="Orders" ReadOnly="false" EditMode="@(_isCellEditMode ? DataGridEditMode.Cell : DataGridEditMode.Form)"
                  Filterable="true" QuickFilter="@_quickFilter"
                  StartedEditingItem="@StartedEditingItem"
                  CanceledEditingItem="@CanceledEditingItem"
-                 CommittedItemChanges="@CommittedItemChanges"
-                 @onkeydown="HandleKeyDown">
+                 CommittedItemChanges="@CommittedItemChanges">
             <ToolBarContent>
                 <MudText Typo="Typo.h6">Order Elements</MudText>
                 <MudSpacer />
@@ -31,28 +30,26 @@ else
             </ToolBarContent>
 
             <Columns>
-                <PropertyColumn Property="x => x.Id" IsEditable="false" />
-                <PropertyColumn Property="x => x.CustomerName" />
-                <PropertyColumn Property="x => x.OrderDate" Title="OrderDate">
-                    <EditTemplate>
-                        <MudDatePicker @bind-Date="context.Item.OrderDate" Placeholder="Select Date"
+                @if (Orders is not null)
+                {
+                    <PropertyColumn Property="x => x.Id" IsEditable="false" />
+                    <PropertyColumn Property="x => x.CustomerName" />
+                    <PropertyColumn Property="x => x.OrderDate" Title="OrderDate">
+                        <EditTemplate>
+                            <MudDatePicker @bind-Date="context.Item.OrderDate" Placeholder="Select Date"
                                    Editable="true" DateFormat="yyyy/MM/dd" />
-                    </EditTemplate>
-                    <CellTemplate>
-                        @Convert.ToDateTime(context.Item.OrderDate).ToString("MMMM dd, yyyy")
-                    </CellTemplate>
-                </PropertyColumn>
-                <PropertyColumn Property="x => x.TotalPrice" IsEditable="false" />
-                <PropertyColumn Property="x => x.IsOrder" IsEditable="true">
-                    <EditTemplate>
-                        <MudSwitch @bind-Checked="context.Item.IsOrder" />
-                    </EditTemplate>
-                </PropertyColumn>
-                <TemplateColumn Hidden="@_isCellEditMode" CellClass="d-flex justify-end">
-                    <CellTemplate>
-                        <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" OnClick="@context.Actions.StartEditingItemAsync" />
-                    </CellTemplate>
-                </TemplateColumn>
+                        </EditTemplate>
+                        <CellTemplate>
+                            @Convert.ToDateTime(context.Item.OrderDate).ToString("MMMM dd, yyyy")
+                        </CellTemplate>
+                    </PropertyColumn>
+                    <PropertyColumn Property="x => x.TotalPrice" IsEditable="false" />                    
+                    <TemplateColumn Hidden="@_isCellEditMode" CellClass="d-flex justify-end">
+                        <CellTemplate>
+                            <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" OnClick="@context.Actions.StartEditingItemAsync" />
+                        </CellTemplate>
+                    </TemplateColumn>
+                }
             </Columns>
         </MudDataGrid>
     </MudPaper>

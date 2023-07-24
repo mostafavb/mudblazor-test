@@ -1,4 +1,4 @@
-﻿namespace MudBlazorTemplates1.Shared.Models;
+﻿namespace Infrastructure.Shared.Models;
 
 public class WeatherForecast
 {
