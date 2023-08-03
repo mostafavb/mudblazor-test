@@ -1,0 +1,22 @@
+﻿@inherits TestContext
+
+@code {
+
+	[Fact]
+	public void CounterStartsAtZeroByRazor()
+	{		
+		var cut = Render(@<Counter />);
+				
+		cut.Find("p").MarkupMatches(@<p diff:ignoreAttributes>Current count: 0</p>);
+	}
+
+	[Fact]
+	public void ClickingButtonIncrementsCounterByRazor()
+	{		
+		var cut = Render(@<Counter />);
+		
+		cut.Find("button").Click();
+		
+		cut.Find("p").MarkupMatches(@<p diff:ignoreAttributes>Current count: 1</p>);
+	}
+}

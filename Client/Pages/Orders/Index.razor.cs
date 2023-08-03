@@ -1,12 +1,12 @@
-﻿using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
+﻿using Infrastructure.Shared.Models;
+using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using System.Collections.ObjectModel;
+using System.Text.Json;
 using Ui.WebAssembly.Mappers;
 using Ui.WebAssembly.Models;
 using Ui.WebAssembly.Services;
-using Ui.WebAssembly.Utils;
-using System.Collections.ObjectModel;
-using System.Text.Json;
+using Ui.WebAssembly.Utilities;
 
 namespace Ui.WebAssembly.Pages.Orders;
 
@@ -19,32 +19,63 @@ public partial class Index
     ObservableCollection<OrderDto>? PersistOrders;
 
     bool _isCellEditMode = true;
-    bool _isDataLoaded = false;
     List<string> _events = new();
+    List<OrderTypeDto> _orderTypes = new();
     string _searchString;
+
+    private PersistingComponentStateSubscription persistingSubscription;
 
     protected override async Task OnInitializedAsync()
     {
-        var response = await Api.OrdersAllAsync();
-        if (response?.StatusCode == 200)
+        var ordreTypeResponse = await Api.TypesAsync();
+        if (ordreTypeResponse?.StatusCode == 200)
         {
             await InvokeAsync(() =>
             {
-                Orders = new ObservableCollection<OrderDto>((response.Result).ToListDto());
-                PersistOrders = new ObservableCollection<OrderDto>(response.Result.ToListDto());
-                _isDataLoaded = true;
+                var orderTypes = ordreTypeResponse.Result;
+                _orderTypes = orderTypes.ToListOfDtos();
             });
-
-
         }
+        ApiResponse<IList<Order>>? apiResponse = null;
+
+        persistingSubscription = ApplicationState.RegisterOnPersisting(PersistForecasts);
+
+        if (!ApplicationState.TryTakeFromJson<ObservableCollection<OrderDto>>("ordersdata", out var restoredOrders))
+        {
+            apiResponse ??= await Api.OrdersAllAsync();
+            if (apiResponse?.StatusCode == 200)
+            {
+                await InvokeAsync(() =>
+                {
+                    Orders = new ObservableCollection<OrderDto>((apiResponse.Result).ToListDto());                    
+                });
+            }
+        }
+        else
+        {
+            Orders = restoredOrders!;
+        }
+
+        if (!ApplicationState.TryTakeFromJson<ObservableCollection<OrderDto>>("persistordersdata", out var restoredPersistOrders))
+        {
+            apiResponse ??= await Api.OrdersAllAsync();
+            if (apiResponse?.StatusCode == 200)
+            {
+                await InvokeAsync(() =>
+                {                    
+                    PersistOrders = new ObservableCollection<OrderDto>(apiResponse.Result.ToListDto());
+                });
+            }
+        }
+        else
+        {
+            PersistOrders = restoredPersistOrders!;
+        }
+
     }
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (_isDataLoaded)
-        {
-            await JSRuntime.InvokeVoidAsync("activeFocus");
-            _isDataLoaded = false;
-        }
+        await JSRuntime.InvokeVoidAsync("activeFocus");
     }
     async Task CheckDataDifference()
     {
@@ -87,34 +118,32 @@ public partial class Index
         return false;
     };
 
-    async Task HandleKeyDown(KeyboardEventArgs e)
+    private Task PersistForecasts()
     {
-        string action = e.Key switch
-        {
-            "ArrowUp" => "up",
-            "ArrowDown" => "down",
-            "ArrowLeft" => "left",
-            "ArrowRight" => "right",
-            _ => string.Empty
-        };
+        ApplicationState.PersistAsJson("ordersdata", Orders);
+        ApplicationState.PersistAsJson("persistordersdata", Orders);
 
-        if (!string.IsNullOrWhiteSpace(action))
-            await JSRuntime.InvokeVoidAsync("mudDataGridInterop.setFocusOnCell", action);
+        return Task.CompletedTask;
+    }
+
+    void IDisposable.Dispose()
+    {
+        persistingSubscription.Dispose();
     }
 
     void StartedEditingItem(OrderDto item)
     {
-        _events.Insert(0, $"Event = StartedEditingItem, Data = {System.Text.Json.JsonSerializer.Serialize(item)}");
+        //_events.Insert(0, $"Event = StartedEditingItem, Data = {System.Text.Json.JsonSerializer.Serialize(item)}");
     }
 
     void CanceledEditingItem(OrderDto item)
     {
-        _events.Insert(0, $"Event = CanceledEditingItem, Data = {System.Text.Json.JsonSerializer.Serialize(item)}");
+        //_events.Insert(0, $"Event = CanceledEditingItem, Data = {System.Text.Json.JsonSerializer.Serialize(item)}");
     }
 
     void CommittedItemChanges(OrderDto item)
     {
         //_events.Insert(0, $"Event = CommittedItemChanges, Data = {System.Text.Json.JsonSerializer.Serialize(item)}");
-        Console.WriteLine($"{System.Text.Json.JsonSerializer.Serialize(item)}");
+        //Console.WriteLine($"{System.Text.Json.JsonSerializer.Serialize(item)}");
     }
 }

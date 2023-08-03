@@ -7,29 +7,31 @@
                    DisableBackdropClick="false"
                    NoHeader="false"
                    Position="DialogPosition.Center"
-                   CloseOnEscapeKey="true"/>
+                   CloseOnEscapeKey="true" />
 <MudSnackbarProvider />
+<div>
+    <MudLayout>
+        <MudAppBar Elevation="0">
+            <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+            <MudSpacer />
 
-<MudLayout>
-    <MudAppBar Elevation="0">
-        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
-        <MudSpacer />
-        <MudIconButton Icon="@Icons.Custom.Brands.MudBlazor" Color="Color.Inherit" Link="https://mudblazor.com/" Target="_blank" />
-        <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Link="https://github.com/MudBlazor/MudBlazor/" Target="_blank" />
-    </MudAppBar>
-    <MudDrawer @bind-Open="_drawerOpen" Elevation="1">
-        <MudDrawerHeader>
-            <MudText Typo="Typo.h6">MudBlazorTemplates1.WebAssembly</MudText>
-        </MudDrawerHeader>
-        <NavMenu />
-    </MudDrawer>
-    <MudMainContent>
-        <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="my-8 pt-2">
-            @Body
-        </MudContainer>
-    </MudMainContent>
-</MudLayout>
+            <MudIconButton Icon="custom-icon" Color="Color.Inherit" Href="https://mudblazor.com/" Target="_blank" />
+            <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Href="https://github.com/MudBlazor/MudBlazor/" Target="_blank" />
 
+        </MudAppBar>
+        <MudDrawer @bind-Open="_drawerOpen" Elevation="1">
+            <MudDrawerHeader>
+                <MudText Typo="Typo.h6">A WebAssembly sample </MudText>
+            </MudDrawerHeader>
+            <NavMenu />
+        </MudDrawer>
+        <MudMainContent>
+            <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="my-8 pt-2">
+                @Body
+            </MudContainer>
+        </MudMainContent>
+    </MudLayout>
+</div>
 @code {
     bool _drawerOpen = true;
 

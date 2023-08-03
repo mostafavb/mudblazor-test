@@ -12,7 +12,7 @@ public class OrdersRepository : IOrdersRepository
     {
         _fakeDataGenerator = new();
 
-        _orders = _fakeDataGenerator.GenerateFakeOrders(50);
+        _orders = _fakeDataGenerator.GenerateFakeOrders(110);
     }
 
     public List<Order> GetAllOrders()

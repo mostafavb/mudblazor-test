@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
 
-namespace Ui.WebAssembly.Utils;
+namespace Ui.WebAssembly.Utilities;
 
 public class DynamicEqualityComparer<T> : IEqualityComparer<T>
 {

@@ -8,7 +8,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ui.WebAssembly", "Client\Ui
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApiClient", "ApiClient\ApiClient.csproj", "{2D0026F0-8B3F-4DCE-A1D8-F0F0E5DCD31E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.bUnit", "BlazorTestProject1.Test.bUnit\Test.bUnit.csproj", "{B382BBAE-0CFF-48A7-B932-0DD5A53C11F4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ui.WebAssembly.Test.bUnit", "BlazorTestProject1.Test.bUnit\Ui.WebAssembly.Test.bUnit.csproj", "{B382BBAE-0CFF-48A7-B932-0DD5A53C11F4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

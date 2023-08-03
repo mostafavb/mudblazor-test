@@ -1,0 +1,11 @@
+﻿::deep #generic-datagrid label {
+    display: none !important;
+}
+
+::deep #generic-datagrid label.mud-checkbox {
+    display: inline-flex !important;
+}
+
+::deep #generic-datagrid label.mud-checkbox p {
+    display: none !important;
+}

@@ -2,8 +2,9 @@
 
 
 [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
-public class DataGridModelAttribute : Attribute
+public class GenericDataGridPrefrencesAttribute : Attribute
 {
+    public bool IsKey { get; set; } = false;
     public bool IsReadOnly { get; set; } = false;
     public bool IsHiden { get; set; } = false;
     public bool IsEditable { get; set; } = false;

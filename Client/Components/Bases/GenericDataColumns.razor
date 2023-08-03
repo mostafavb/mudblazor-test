@@ -1,0 +1,226 @@
+﻿@using System.Reflection;
+@using MudBlazor.Extensions;
+@using Ui.WebAssembly.Utilities;
+
+@typeparam TItem where TItem: class,new()
+
+
+
+@foreach (var property in Properties)
+{
+    var attributes = property.GetCustomAttribute<GenericDataGridPrefrencesAttribute>();
+    @*LogAttributes(prop);*@
+    if (attributes is null)
+        return;
+
+    @if (TypeIdentifier.IsDateTime(property.PropertyType))
+    {
+        <PropertyColumn T="TItem" TProperty="DateTime?" Property="@(p => (DateTime?)property.GetValue(p))"
+                IsEditable="@(attributes!.IsEditable)"
+                Sortable="@(attributes.IsSortable)"
+                Hidden="@(attributes.IsHiden)"
+                Title="@(string.IsNullOrWhiteSpace(attributes.Title)? property.Name : attributes.Title)"
+                Filterable="@(attributes.IsFilterable)">
+
+            <EditTemplate>
+                <MudDatePicker Label="@((IsFormOpened ) ? (string.IsNullOrWhiteSpace(attributes.Title)? property.Name : attributes.Title) : string.Empty)"
+                       Date="(DateTime?)property.GetValue(context.Item)"
+                       DateChanged="@(async e=> {
+                                                    DateTime? convertedValue =e is null ? null : e.Value as DateTime?;
+                                                    property.SetValue(context.Item,convertedValue);
+                                                    if(!IsFormOpened)
+                                                        await OnEditCell.InvokeAsync(context.Item);
+                                                })"
+                       ReadOnly=@(attributes.IsReadOnly)
+                       Placeholder="@attributes.Placeholder"
+                       Editable="@(attributes!.IsEditable)"
+                       DateFormat="@attributes.Format" />
+            </EditTemplate>
+        </PropertyColumn>
+    }
+    @if (TypeIdentifier.IsNumber(property.PropertyType))
+    {
+        if (TypeIdentifier.IsIntegralNumber(property.PropertyType))
+        {
+            <PropertyColumn T="TItem" TProperty="int?" Property="@(p => (int?)property.GetValue(p))"
+                IsEditable="@(attributes?.IsEditable ?? false)"
+                Sortable="@(attributes?.IsSortable ?? false)"
+                Hidden="@(attributes?.IsHiden ?? false)"
+                Title="@(string.IsNullOrWhiteSpace(attributes?.Title) ? property.Name : attributes.Title)"
+                Filterable="@(attributes?.IsFilterable)">
+                <EditTemplate>
+
+                    @if ((ExternalData?.Keys.Contains(property.Name) ?? false) && TypeIdentifier.IsEnumerable(attributes?.DataType) && (attributes?.DataType == ExternalData?[property.Name]?.GetType()))
+                    {
+                        <MudSelect T="int?" Dense="true"
+                   Value="(int?)property.GetValue(context.Item)"
+                   ValueChanged="@( async e=> {
+                                                    int? convertedValue = e is null ? 0 : e.Value ;
+                                                    property.SetValue(context.Item,convertedValue ?? 0);
+                                                    if(!IsFormOpened)
+                                                        await OnEditCell.InvokeAsync(context.Item);
+                                                })">
+                            @foreach (KeyValuePair<int, string> option in ExternalData?[property.Name].As<List<KeyValuePair<int, string>>>() ?? new())
+                            {
+                                <MudSelectItem T="int?" Value="@option.Key">@option.Value</MudSelectItem>
+                            }
+                        </MudSelect>
+                    }
+                    else
+                    {
+                        <MudNumericField id="id-numeric" Label="@((IsFormOpened ) ? (string.IsNullOrWhiteSpace(attributes!.Title)? property.Name : attributes.Title) : string.Empty)"
+                         T="int?"
+                         Value="(int?)property.GetValue(context.Item)"
+                         ValueChanged="@( async e=> {
+                                                        int? convertedValue = e is null ? 0 : e.Value ;
+                                                        property.SetValue(context.Item,convertedValue ?? 0);
+                                                        if(!IsFormOpened)
+                                                            await OnEditCell.InvokeAsync(context.Item);
+                                                     })"
+                         Immediate="false"
+                         HideSpinButtons="true"
+                         Placeholder="@attributes?.Placeholder"
+                         ReadOnly=@(attributes?.IsReadOnly ?? false) />
+                    }
+                </EditTemplate>
+            </PropertyColumn>
+        }
+        else
+        {
+            <PropertyColumn T="TItem" TProperty="decimal?" Property="@(p => (decimal?)property.GetValue(p))"
+                IsEditable="@(attributes!.IsEditable)"
+                Sortable="@(attributes.IsSortable)"
+                Hidden="@(attributes.IsHiden)"
+                Title="@(string.IsNullOrWhiteSpace(attributes.Title)? property.Name : attributes.Title)"
+                Filterable="@(attributes.IsFilterable)">
+                <EditTemplate>
+                    <MudNumericField id="id-numeric"
+                         Label="@((IsFormOpened) ? (string.IsNullOrWhiteSpace(attributes.Title)? property.Name : attributes.Title) : string.Empty)"
+                         T="decimal?"
+                         Value="(decimal?)property.GetValue(context.Item)"
+                         ValueChanged="@(async e=>{
+                                                    decimal? convertedValue = e is null ? 0.0m: e.Value;
+                                                    property.SetValue(context.Item,convertedValue ?? 0.0m);
+                                                    if(!IsFormOpened)
+                                                        await OnEditCell.InvokeAsync(context.Item);
+                                                })"
+                         Immediate="false"
+                         HideSpinButtons="true"
+                         Placeholder="@attributes.Placeholder"
+                         ReadOnly=@(attributes.IsReadOnly) />
+                </EditTemplate>
+            </PropertyColumn>
+        }
+
+    }
+    @if (TypeIdentifier.IsString(property.PropertyType))
+    {
+        <PropertyColumn T="TItem" TProperty="string" Property="@(p => (string?)property.GetValue(p))"
+                IsEditable="@(attributes!.IsEditable)"
+                Sortable="@(attributes.IsSortable)"
+                Hidden="@(attributes.IsHiden)"
+                Title="@(string.IsNullOrWhiteSpace(attributes.Title)? property.Name : attributes.Title)"
+                Filterable="@(attributes.IsFilterable)">
+            <EditTemplate>
+                @if ((ExternalData?.Keys.Contains(property.Name) ?? false) && TypeIdentifier.IsEnumerable(attributes.DataType) && (attributes?.DataType == ExternalData?[property.Name]?.GetType()))
+                {
+                    <MudSelect T="string" Dense="true"
+                   Value="(string?)property.GetValue(context.Item)"
+                   ValueChanged="@(async e=>{
+                                                string? convertedValue = e;
+                                                property.SetValue(context.Item,convertedValue);
+                                                if(!IsFormOpened)
+                                                    await OnEditCell.InvokeAsync(context.Item);
+                                            })">
+                        @foreach (KeyValuePair<string, string> option in ExternalData?[property.Name].As<List<KeyValuePair<string, string>>>() ?? new())
+                        {
+                            <MudSelectItem T="string" Value="@option.Key">@option.Value</MudSelectItem>
+                        }
+                    </MudSelect>
+                }
+                else
+                {
+                    <MudTextField T="string"
+                      Label="@((IsFormOpened) ? (string.IsNullOrWhiteSpace(attributes?.Title)? property.Name : attributes.Title) : string.Empty)"
+                      ReadOnly="@(attributes?.IsReadOnly ?? false)"
+                      Placeholder="@attributes?.Placeholder"
+                      Value="(string?)property.GetValue(context.Item)"
+                      Immediate="false"
+                      ValueChanged="@( async e=>{
+                                                    string? convertedValue = e;
+                                                    property.SetValue(context.Item,convertedValue);
+                                                    if(!IsFormOpened)
+                                                        await OnEditCell.InvokeAsync(context.Item);
+                                                })">
+                    </MudTextField>
+                }
+            </EditTemplate>
+        </PropertyColumn>
+    }
+    @if (TypeIdentifier.IsBoolean(property.PropertyType))
+    {
+        <PropertyColumn T="TItem" TProperty="bool" Property="@(p => (bool)(property.GetValue(p) ?? false))"
+                IsEditable="@(attributes!.IsEditable)"
+                Sortable="@(attributes.IsSortable)"
+                Hidden="@(attributes.IsHiden)"
+                Title="@(string.IsNullOrWhiteSpace(attributes.Title)? property.Name : attributes.Title)"
+                Filterable="@(attributes.IsFilterable)">
+            <EditTemplate>
+                <MudCheckBox Label="@((IsFormOpened) ? (string.IsNullOrWhiteSpace(attributes.Title)? property.Name : attributes.Title) : string.Empty)"
+                     ReadOnly=@(attributes.IsReadOnly) T="bool?"
+                     Checked="((bool)(property.GetValue(context.Item) ?? false))"
+                     CheckedChanged="@( async e=>{
+                                                    bool convertedValue = (bool)(e is null ? false : e.Value);
+                                                    property.SetValue(context.Item,convertedValue);
+                                                    if(!IsFormOpened)
+                                                        await OnEditCell.InvokeAsync(context.Item);
+                                                })" />
+            </EditTemplate>
+        </PropertyColumn>
+    }
+}
+<TemplateColumn T="TItem" Sortable="false" Filterable="false" IsEditable="false" StickyRight="true">
+    <CellTemplate>
+        @if (ShowEditeButton)
+        {
+            <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" OnClick="@(async() => await OnEditRow.InvokeAsync(context.Item))" />
+
+        }
+        @if (ShowDeleteButton)
+        {
+            <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" OnClick="@(async() => await OnDeleteRow.InvokeAsync(context.Item))" />
+
+        }
+
+    </CellTemplate>
+</TemplateColumn>
+
+@code {
+
+    [Parameter]
+    [EditorRequired]
+    public List<PropertyInfo> Properties { get; set; }
+
+    [CascadingParameter(Name = "ExternalData")]
+    public Dictionary<string, object> ExternalData { get; set; }
+
+    [Parameter]
+    public bool IsFormOpened { get; set; }
+
+    [Parameter]
+    public bool ShowDeleteButton { get; set; } = true;
+
+    [Parameter]
+    public bool ShowEditeButton { get; set; } = false;
+
+    [Parameter]
+    public EventCallback<TItem> OnDeleteRow { get; set; }
+
+    [Parameter]
+    public EventCallback<TItem> OnEditRow { get; set; }
+
+    [Parameter]
+    public EventCallback<TItem> OnEditCell { get; set; }
+
+
+}

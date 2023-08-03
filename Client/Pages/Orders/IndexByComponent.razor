@@ -1,14 +1,7 @@
 ﻿@page "/ordersbycomponent"
-
-@using Ui.WebAssembly.Extensions;
-@using Ui.WebAssembly.Mappers;
+@using Ui.WebAssembly.Components.Bases
 @using Ui.WebAssembly.Models;
-@using Ui.WebAssembly.Services;
-@using System.Collections.ObjectModel;
-@using Ui.WebAssembly.Components.Bases;
 
-
-@inject ApiClient Api
 
 <MudPaper>
     @if (Items is null)
@@ -28,78 +21,14 @@
                          HeaderTitle="Order Title"
                          ReadOnly="false"
                          Filterable="true"
-                         ShowCheckDifference="true"
-                         ExternalDatas="@externalDatas"
+                         ShowCheckDifference="true"                         
+                         ExternalData="@externalDatas"
                          DataGridEditMode="DataGridEditMode.Cell"
                          GetDifferences="@GetDifferences"
-                         OnDataChanged="@DataChanged"
+                         OnDataChanged="@DataChangedByFile"
                          OnApplyChangedData="@ApplyChanges">
             </GenericDataGrid>
         </MudItem>
     }
 </MudPaper>
-
-
-@code {
-    // fields
-    GenericDataGrid<OrderDto> _grid;
-
-    ObservableCollection<OrderDto>? Items;
-    ObservableCollection<OrderDto>? PersistOrders;
-    Dictionary<string, object> externalDatas;
-
-    // events
-
-    protected override async Task OnInitializedAsync()
-    {
-        var ordreTypeResponse = await Api.TypesAsync();
-        if (ordreTypeResponse?.StatusCode == 200)
-        {
-            await InvokeAsync(() =>
-            {
-                var orderTypes = ordreTypeResponse.Result;
-                externalDatas ??= new();
-                externalDatas[nameof(OrderDto.OrderTypeId)] = orderTypes.ToListOfPairs();
-            });
-        }
-
-        var orderResponse = await Api.OrdersAllAsync();
-        if (orderResponse?.StatusCode == 200)
-        {
-            await Task.Run(() => Items = new ObservableCollection<OrderDto>((orderResponse.Result).ToListDto()));
-            await Task.Run(() => PersistOrders = new ObservableCollection<OrderDto>(orderResponse.Result.ToListDto()));
-        }
-
-    }
-
-    async Task<IList<OrderDto>> GetDifferences()
-    {
-        var changedRows = await GetAllChangesAsync();
-
-        return await Task.FromResult(changedRows.ToList());
-    }
-
-    async Task ApplyChanges()
-    {
-        await Task.CompletedTask;
-    }
-    // methods
-
-    async Task DataChanged(IList<OrderDto> orders)
-    {
-        await Task.Run(() => Items = new ObservableCollection<OrderDto>(orders.ToList()));
-        //PersistOrders = new ObservableCollection<OrderDto>(orderDtos.ToList());
-        StateHasChanged();
-    }
-
-    async Task<IList<OrderDto>> GetAllChangesAsync() =>
-            await Task.FromResult(PersistOrders?.GetDataDifference(Items ?? new(), true) ?? Enumerable.Empty<OrderDto>().ToList());
-
-
-    async Task<IList<OrderDto>> GetEdittedRowsAsync() =>
-           await Task.FromResult(Items?.GetDataDifference(PersistOrders ?? new()) ?? Enumerable.Empty<OrderDto>().ToList());
-
-
-
-}
 

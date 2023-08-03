@@ -14,7 +14,6 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https:/
 
 builder.Services.AddScoped<ApiClient>();
 
-
 builder.Services.AddMudServices();
 
 await builder.Build().RunAsync();

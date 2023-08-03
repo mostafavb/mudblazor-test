@@ -1,6 +1,10 @@
 ﻿@page "/orders/"
+@implements IDisposable
+
 @using MudBlazor.Utilities;
 @using Ui.WebAssembly.Models;
+
+@inject PersistentComponentState ApplicationState
 
 @if (Orders == null)
 {
@@ -34,16 +38,33 @@ else
                 {
                     <PropertyColumn Property="x => x.Id" IsEditable="false" />
                     <PropertyColumn Property="x => x.CustomerName" />
-                    <PropertyColumn Property="x => x.OrderDate" Title="OrderDate">
+                    <PropertyColumn Property="x => x.OrderDate" Title="OrderDate" Format="MMMM dd, yyyy">
                         <EditTemplate>
                             <MudDatePicker @bind-Date="context.Item.OrderDate" Placeholder="Select Date"
                                    Editable="true" DateFormat="yyyy/MM/dd" />
                         </EditTemplate>
-                        <CellTemplate>
-                            @Convert.ToDateTime(context.Item.OrderDate).ToString("MMMM dd, yyyy")
-                        </CellTemplate>
                     </PropertyColumn>
-                    <PropertyColumn Property="x => x.TotalPrice" IsEditable="false" />                    
+                    <PropertyColumn Property="x => x.PaymentDate" Title="Payment Date" Format="MMMM dd, yyyy">
+                        <EditTemplate>
+                            <MudDatePicker @bind-Date="context.Item.PaymentDate" Placeholder="Select Date"
+                                   Editable="true" DateFormat="yyyy/MM/dd" />
+                        </EditTemplate>
+                    </PropertyColumn>
+                    <PropertyColumn Property="x => x.OrderTypeId" IsEditable="true">
+                        <EditTemplate>
+                            <MudSelect T="int" Dense="true" @bind-Value="context.Item.OrderTypeId">
+                                @foreach (var orderType in _orderTypes)
+                                {
+                                    <MudSelectItem T="int" Value="@orderType.Id">@orderType.Name</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </EditTemplate>
+                    </PropertyColumn>
+                    <PropertyColumn Property="x => x.TotalPrice" HideSpinButtons="true" IsEditable="true" />
+                    <PropertyColumn Property="x => x.Remains" IsEditable="true" />
+                    <PropertyColumn Property="x => x.ZipCode" IsEditable="true" />
+                    <PropertyColumn Property="x => x.FactorId" IsEditable="true" />
+                    <PropertyColumn Property="x=>x.IsOrder" />
                     <TemplateColumn Hidden="@_isCellEditMode" CellClass="d-flex justify-end">
                         <CellTemplate>
                             <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" OnClick="@context.Actions.StartEditingItemAsync" />
@@ -53,4 +74,10 @@ else
             </Columns>
         </MudDataGrid>
     </MudPaper>
+}
+@code{
+    
+
+
+    
 }

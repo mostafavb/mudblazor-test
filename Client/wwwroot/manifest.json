@@ -1,6 +1,6 @@
 {
-  "name": "MudBlazorTemplates1.WebAssembly",
-  "short_name": "MudBlazorTemplates1.WebAssembly",
+  "name": "Ui.WebAssembly",
+  "short_name": "Ui.WebAssembly",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -8,7 +8,7 @@
   "prefer_related_applications": false,
   "icons": [
     {
-      "src": "icon-512.png",
+      "src": "/images/logo512.png",
       "type": "image/png",
       "sizes": "512x512"
     }
